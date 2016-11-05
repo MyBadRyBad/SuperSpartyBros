@@ -8,7 +8,7 @@ public class CharacterController2D : MonoBehaviour {
 	// player controls
 	[Range(0.0f, 10.0f)] // create a slider in the editor and set limits on moveSpeed
 	public float moveSpeed = 3f;
-
+	public bool isBattleMode = false;
 	public float jumpForce = 600f;
 
 	// player health
@@ -89,6 +89,41 @@ public class CharacterController2D : MonoBehaviour {
 		if (!playerCanMove || (Time.timeScale == 0f))
 			return;
 
+		if (isBattleMode) {
+			ExecuteCombatControls ();
+		} else {
+			ExecuteMovementControls ();
+		}
+	}
+
+	// Checking to see if the sprite should be flipped
+	// this is done in LateUpdate since the Animator may override the localScale
+	// this code will flip the player even if the animator is controlling scale
+	void LateUpdate()
+	{
+		if (!isBattleMode) {
+			// get the current scale
+			Vector3 localScale = _transform.localScale;
+
+			if (_vx > 0) // moving right so face right
+			{
+				_facingRight = true;
+			} else if (_vx < 0) { // moving left so face left
+				_facingRight = false;
+			}
+
+			// check to see if scale x is right for the player
+			// if not, multiple by -1 which is an easy way to flip a sprite
+			if (((_facingRight) && (localScale.x<0)) || ((!_facingRight) && (localScale.x>0))) {
+				localScale.x *= -1;
+			}
+
+			// update the scale
+			_transform.localScale = localScale;
+		}
+	}
+
+	void ExecuteMovementControls() {
 		// determine horizontal velocity change based on the horizontal input
 		_vx = CrossPlatformInputManager.GetAxisRaw ("Horizontal");
 
@@ -128,7 +163,7 @@ public class CharacterController2D : MonoBehaviour {
 			// disable double jump after double jumping
 			_canDoubleJump = false;
 		}
-	
+
 		// If the player stops jumping mid jump and player is not yet falling
 		// then set the vertical velocity to 0 (he will start to fall from gravity)
 		if(CrossPlatformInputManager.GetButtonUp("Jump") && _vy>0f)
@@ -143,31 +178,25 @@ public class CharacterController2D : MonoBehaviour {
 		// this allows the player to jump up through things on the platform layer
 		// NOTE: requires the platforms to be on a layer named "Platform"
 		Physics2D.IgnoreLayerCollision(_playerLayer, _platformLayer, (_vy > 0.0f)); 
-	}
+	} 
 
-	// Checking to see if the sprite should be flipped
-	// this is done in LateUpdate since the Animator may override the localScale
-	// this code will flip the player even if the animator is controlling scale
-	void LateUpdate()
-	{
-		// get the current scale
-		Vector3 localScale = _transform.localScale;
+	void ExecuteCombatControls() {
+		_vx = CrossPlatformInputManager.GetAxisRaw ("Horizontal");
+		_vy = CrossPlatformInputManager.GetAxisRaw ("Vertical");
 
-		if (_vx > 0) // moving right so face right
-		{
-			_facingRight = true;
-		} else if (_vx < 0) { // moving left so face left
-			_facingRight = false;
+
+		if (_vx > 0) {
+			DoAttack ();
+		} else if (_vx < 0) {
+			DoDodge ();
 		}
 
-		// check to see if scale x is right for the player
-		// if not, multiple by -1 which is an easy way to flip a sprite
-		if (((_facingRight) && (localScale.x<0)) || ((!_facingRight) && (localScale.x>0))) {
-			localScale.x *= -1;
+		if (_vy < 0) {
+			DoShield ();
+		} else if (_vy > 0) {
+			DoMagic ();
 		}
 
-		// update the scale
-		_transform.localScale = localScale;
 	}
 
 	// if the player collides with a MovingPlatform, then make it a child of that platform
@@ -187,6 +216,22 @@ public class CharacterController2D : MonoBehaviour {
 		{
 			this.transform.parent = null;
 		}
+	}
+
+	void DoAttack() {
+		Debug.Log ("Do Attack");
+	}
+
+	void DoDodge() {
+		Debug.Log ("Do Dodge");
+	}
+
+	void DoShield() {
+		Debug.Log ("Do Shield");
+	}
+
+	void DoMagic() {
+		Debug.Log ("Do Magic");
 	}
 
 	// make the player jump
