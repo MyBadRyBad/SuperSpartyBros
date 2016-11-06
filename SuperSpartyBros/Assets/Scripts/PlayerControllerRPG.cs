@@ -43,6 +43,10 @@ public class PlayerControllerRPG : MonoBehaviour {
 	[HideInInspector]
 	public bool isUsingMagic = false;
 
+	public float magicChargeRate = 10.0f;
+	[HideInInspector]
+	public float magicCharge = 0.0f;
+
 	// shield dodge cooldowns
 	public float dodgeCooldown = 1.0f;
 	private float _dodgeTimer = 0.0f;
@@ -89,22 +93,37 @@ public class PlayerControllerRPG : MonoBehaviour {
 		float vx = CrossPlatformInputManager.GetAxis ("Horizontal");
 		float vy = CrossPlatformInputManager.GetAxis ("Vertical");
 
-		if (vx == 1 && _attackTimer <= Time.time) {
-			ExecuteAttack ();
-			EnableMagicParticleSystem (false);
-		} else if (vx == -1) {
-			ExecuteCharge ();
-		} else {
-			EnableMagicParticleSystem (false);
+		if (!isUsingMagic) {
+			if (vx == 1 && _attackTimer <= Time.time) {
+				ExecuteAttack ();
+				EnableMagicParticleSystem (false);
+			} else if (vx == -1) {
+				ExecuteCharge ();
+			} else {
+				EnableMagicParticleSystem (false);
+			}
+			if (vy == -1 && _shieldTimer <= Time.time) {
+				ExecuteShield ();
+				EnableMagicParticleSystem (false);
+			} else if (vy == 1 && magicCharge >= 100.0f) {
+				ExecuteMagic ();
+			} 
 		}
-		if (vy == -1 && _shieldTimer <= Time.time) {
-			ExecuteShield ();
-			EnableMagicParticleSystem (false);
-		} else if (vy == 1 && _magicTimer <= Time.time) {
-			ExecuteMagic ();
-		} 
+
+		updateCooldownUI ();
 	}
 		
+
+	public void updateCooldownUI() {
+		float cooldownAttack = Mathf.Min(1 - (( _attackTimer - Time.time) / attackCooldown), 1.0f);
+		float cooldownDefend = Mathf.Min(1 - (( _shieldTimer - Time.time) / shieldCooldown), 1.0f);
+		float cooldownMagicCharge = Mathf.Min (magicCharge / 100, 1.0f);
+
+		RPGGameManager.gm_rpg.UpdateAttackCooldownProgress (cooldownAttack);
+		RPGGameManager.gm_rpg.UpdateDefendCooldownProgress (cooldownDefend);
+		RPGGameManager.gm_rpg.UpdateMagicCooldownProgress (cooldownMagicCharge);
+
+	}
 
 	// attack actions
 	public void ExecuteAttack() {
@@ -125,6 +144,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 		Debug.Log ("Do Magic");
 
 		_magicTimer = Time.time + magicCooldown;
+		magicCharge = 0.0f;
 		isUsingMagic = true;
 
 		_animator.Play ("SpartyMagic", 0, 0);
@@ -142,11 +162,13 @@ public class PlayerControllerRPG : MonoBehaviour {
 
 	public void EndMagic() {
 		_animator.Play ("SpartyBattleIdle", 0, 0);
+		isUsingMagic = false;
 		EnableMagicParticleSystem (false);
 	}
 
 	// charge actions
 	public void ExecuteCharge() {
+		magicCharge += magicChargeRate * Time.deltaTime;
 		EnableMagicParticleSystem(true);
 	}
 

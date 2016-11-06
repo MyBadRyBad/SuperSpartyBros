@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour {
 	public int highscore = 0;
 	public int startLives = 3;
 	public int lives = 3;
+	public int HealthPoints = 100;
 
 	// UI elements to control
 	public Text UIScore;
