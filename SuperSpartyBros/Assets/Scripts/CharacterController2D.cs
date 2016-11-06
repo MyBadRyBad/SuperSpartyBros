@@ -89,11 +89,8 @@ public class CharacterController2D : MonoBehaviour {
 		if (!playerCanMove || (Time.timeScale == 0f))
 			return;
 
-		if (isBattleMode) {
-			ExecuteCombatControls ();
-		} else {
-			ExecuteMovementControls ();
-		}
+		ExecuteMovementControls ();
+
 	}
 
 	// Checking to see if the sprite should be flipped
@@ -181,19 +178,19 @@ public class CharacterController2D : MonoBehaviour {
 	} 
 
 	void ExecuteCombatControls() {
-		_vx = CrossPlatformInputManager.GetAxisRaw ("Horizontal");
-		_vy = CrossPlatformInputManager.GetAxisRaw ("Vertical");
+		_vx = CrossPlatformInputManager.GetAxis ("Horizontal");
+		_vy = CrossPlatformInputManager.GetAxis ("Vertical");
 
 
-		if (_vx > 0) {
+		if (_vx == 1) {
 			DoAttack ();
-		} else if (_vx < 0) {
+		} else if (_vx == -1) {
 			DoDodge ();
 		}
 
-		if (_vy < 0) {
+		if (_vy == -1) {
 			DoShield ();
-		} else if (_vy > 0) {
+		} else if (_vy == 1) {
 			DoMagic ();
 		}
 
