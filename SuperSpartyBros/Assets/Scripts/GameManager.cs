@@ -85,10 +85,10 @@ public class GameManager : MonoBehaviour {
 		// setup reference to player
 		if (_player == null)
 			_player = GameObject.FindGameObjectWithTag("Player");
-		
+
 		if (_player==null)
 			Debug.LogError("Player not found in Game Manager");
-		
+
 		// get initial _spawnLocation based on initial position of player
 		_spawnLocation = _player.transform.position;
 
@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour {
 			Debug.LogWarning("levelAfterVictory not specified, defaulted to current level");
 			levelAfterVictory = Application.loadedLevelName;
 		}
-		
+
 		if (levelAfterGameOver=="") {
 			Debug.LogWarning("levelAfterGameOver not specified, defaulted to current level");
 			levelAfterGameOver = Application.loadedLevelName;
@@ -106,16 +106,16 @@ public class GameManager : MonoBehaviour {
 		// friendly error messages
 		if (UIScore==null)
 			Debug.LogError ("Need to set UIScore on Game Manager.");
-		
+
 		if (UIHighScore==null)
 			Debug.LogError ("Need to set UIHighScore on Game Manager.");
-		
+
 		if (UILevel==null)
 			Debug.LogError ("Need to set UILevel on Game Manager.");
-		
+
 		if (UIGamePaused==null)
 			Debug.LogError ("Need to set UIGamePaused on Game Manager.");
-		
+
 		// get stored player prefs
 		refreshPlayerState();
 
@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviour {
 		UIScore.text = "Score: "+score.ToString();
 		UIHighScore.text = "Highscore: "+highscore.ToString ();
 		UILevel.text = Application.loadedLevelName;
-		
+
 		// turn on the appropriate number of life indicators in the UI based on the number of lives left
 		for(int i=0;i<UIExtraLives.Length;i++) {
 			if (i<(lives-1)) { // show one less than the number of lives since you only typically show lifes after the current life in UI
@@ -207,7 +207,7 @@ public class GameManager : MonoBehaviour {
 	public void LoadBattle() {
 		SceneManager.LoadScene (levelBattle);
 	}
-		
+
 	void RefreshWithGlobalControls() {
 		_player.transform.position = GlobalControl.Instance.playerData.currentPlayerPosition;
 
@@ -226,15 +226,15 @@ public class GameManager : MonoBehaviour {
 			} else {
 				enemy.transform.position = enemyData.currentPosition;
 			}
-				
+
 			if (enemyData.isStunned) {
 				enemyBehavior.Stunned ();
 			}
 
-		/*	if (enemyData.movingPlatformIndex >= 0) {
+			/*	if (enemyData.movingPlatformIndex >= 0) {
 				SetObjectToChildOfPlatform (enemy, platforms [enemyData.movingPlatformIndex]);
 			} */
-				
+
 		}
 
 		for (int index = 0; index < GlobalControl.Instance.coinData.Length; index++) {
@@ -247,7 +247,7 @@ public class GameManager : MonoBehaviour {
 			MovingPlatformData platformData = GlobalControl.Instance.platformsData [index];
 			GameObject platform = platforms [index];
 			platform.transform.position = platformData.currentPosition;
-	
+
 		}
 	}
 
@@ -275,13 +275,13 @@ public class GameManager : MonoBehaviour {
 				enemyData.isMovingEnemy = false;
 			}
 		}
-			
-	/*	for (int index = 0; index < coins.Length; index++) {
+
+		/*	for (int index = 0; index < coins.Length; index++) {
 			CoinData coinData = GlobalControl.Instance.coinData [index];
 			GameObject coin = coins [index];
 			coin.SetActive (coinData.doesExist);
 		} */
-			
+
 		for (int index = 0; index < platforms.Length; index++) {
 			GameObject platform = platforms [index];
 			MovingPlatformData platformData = GlobalControl.Instance.platformsData [index];
@@ -296,14 +296,26 @@ public class GameManager : MonoBehaviour {
 
 		for (int index = 0; index < enemies.Length; index++) {
 			GameObject storedObject = enemies [index];
-			GameObject currentObject; 
-			if (enemy.transform.parent == null) {
+		/*	GameObject currentObject; 
+
+
+			if (enemy.transform.parent == null) { // is stationary enemy on stationary platform
 				currentObject = enemy;
-			} else {
-				currentObject = enemy.transform.parent.gameObject;
+			} else  {
+				if (!enemy.transform.parent.gameObject.GetComponent<Enemy> ()) { // is station enemy on moving platform
+					currentObject = enemy;
+				} else { // is moving enemy
+					currentObject = enemy.transform.parent.gameObject;
+				}
 			}
 
 			if (storedObject.Equals (currentObject)) {
+				GlobalControl.Instance.currentEnemyIndex = index;
+
+				Debug.Log ("enemyIndex: " + index);
+			}  */
+
+			if (storedObject.Equals(enemy) || storedObject.transform.GetChild(0).gameObject.Equals(enemy)) {
 				GlobalControl.Instance.currentEnemyIndex = index;
 
 				Debug.Log ("enemyIndex: " + index);
