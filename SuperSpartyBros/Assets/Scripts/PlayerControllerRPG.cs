@@ -18,6 +18,13 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public Transform magicSpawnLocation;
 	public Transform attackStopLocation;
 
+	// player health
+	private float _currentHealth = 500.0f;
+	public TextMesh healthTextMesh;
+
+	// player Damage
+	public float attackDamage = 10.0f;
+
 	// fire ball
 	public GameObject fireballPrefab;
 	private GameObject _currentFireball;
@@ -135,6 +142,12 @@ public class PlayerControllerRPG : MonoBehaviour {
 	}
 
 	public void EndAttack() {
+		if (RPGGameManager.gm_rpg.enemy1) {
+			RPGGameManager.gm_rpg.DamageEnemy1 (attackDamage, false);
+		} else if (RPGGameManager.gm_rpg.enemy2) {
+			RPGGameManager.gm_rpg.DamageEnemy2 (attackDamage, false);
+		}
+
 		gameObject.transform.position = playerSpawnLocation.transform.position;
 		_animator.Play ("SpartyBattleIdle", 0, 0);
 	}
@@ -201,9 +214,20 @@ public class PlayerControllerRPG : MonoBehaviour {
 	}
 
 	void EndShield() {
+		isUsingShield = false;
 		_animator.Play ("SpartyBattleIdle", 0, 0);
 	}
 		
+	// damage player
+	public void DamagePlayer(float damageAmount, bool ignoreShield) {
+		if (!isUsingShield || ignoreShield) {
+			_currentHealth -= damageAmount;
+			healthTextMesh.text = _currentHealth.ToString ("f0") + " / 500";
+		}
+
+	}
+
+	// particle systems
 	public void EnableMagicParticleSystem(bool play) {
 		if (magicParticleSystem) {
 			if (play) {

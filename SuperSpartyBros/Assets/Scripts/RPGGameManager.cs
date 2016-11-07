@@ -15,6 +15,9 @@ public class RPGGameManager : MonoBehaviour {
 	public Image magicCooldown;
 	public Image chargeCooldown;
 
+	public GameObject enemy1;
+	public GameObject enemy2;
+
 	// private variables
 	GameObject _player;
 	Vector3 _spawnLocation;
@@ -58,7 +61,7 @@ public class RPGGameManager : MonoBehaviour {
 		// get the UI ready for the game
 		refreshGUI();
 	}
-
+		
 
 	// refresh all the GUI elements
 	void refreshGUI() {
@@ -98,5 +101,22 @@ public class RPGGameManager : MonoBehaviour {
 
 	public void UpdateChargeCooldownProgress(float progress) {
 		chargeCooldown.fillAmount = progress;
+	}
+
+
+	// damage
+	public void DamagePlayer(float damageAmount, bool ignoreShield) {
+		PlayerControllerRPG controller = _player.GetComponent<PlayerControllerRPG> ();
+		controller.DamagePlayer (damageAmount, ignoreShield);
+	}
+
+	public void DamageEnemy1(float damageAmount, bool ignoreShield) {
+		EnemyRPGAI controller = enemy1.GetComponent<EnemyRPGAI> ();
+		controller.DamageEnemy (damageAmount, ignoreShield);
+	}
+
+	public void DamageEnemy2(float damageAmount, bool ignoreShield) {
+		EnemyRPGAI controller = enemy2.GetComponent<EnemyRPGAI> ();
+		controller.DamageEnemy (damageAmount, ignoreShield);
 	}
 }
