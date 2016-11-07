@@ -20,6 +20,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 
 	// player health
 	public float currentHealth = 500.0f;
+	private float _defaultMaxHealth = 100.0f;
 	public TextMesh healthTextMesh;
 
 	// player Damage
@@ -92,8 +93,13 @@ public class PlayerControllerRPG : MonoBehaviour {
 		}
 			
 		canMove = true;
-		currentHealth = GlobalControl.Instance.playerData.playerHP;
-		healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
+		if (GlobalControl.Instance != null && GlobalControl.Instance.playerData != null) {
+			currentHealth = GlobalControl.Instance.playerData.playerHP;
+			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
+		} else {
+			currentHealth = 100.0f;
+			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + _defaultMaxHealth.ToString("f0");
+		}
 		// disable particles for now
 	/*	EnableDashParticleSystem(false);
 		EnableMagicParticleSystem (false);
@@ -248,8 +254,12 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public void DamagePlayer(float damageAmount, bool ignoreShield) {
 		if (!isUsingShield || ignoreShield) {
 			currentHealth -= damageAmount;
-			GlobalControl.Instance.playerData.playerHP -= damageAmount;
-			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
+			if (GlobalControl.Instance != null && GlobalControl.Instance.playerData != null) {
+				GlobalControl.Instance.playerData.playerHP -= damageAmount;
+				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
+			} else {
+				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + _defaultMaxHealth.ToString ("f0");
+			}
 		}
 
 	}

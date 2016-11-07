@@ -14,4 +14,10 @@ public class FireballShoot : MonoBehaviour {
 
 		_rb.velocity = new Vector2 (speed, _rb.velocity.y);
 	}
+
+	void OnTriggerEnter2D(Collider2D collider) {
+		if (collider.gameObject.tag == "Enemy") {
+			RPGGameManager.gm_rpg.DamageEnemy1 (40.0f, true);
+		}
+	}
 }

@@ -22,11 +22,7 @@ public class PlayerAttackCollision : MonoBehaviour {
 		Debug.Log ("DidCollide");
 		if (other.gameObject.tag == "Enemy")
 		{
-			Debug.Log ("Did collide");
-			this.GetComponentInParent<PlayerControllerRPG> ().ExecuteAttack();
-
-			// make the character bounce off the enemy AKA Jump
-	//		other.gameObject.GetComponent<CharacterController2D>().enemyBounce();
+			RPGGameManager.gm_rpg.DamageEnemy1 (40.0f, true);
 		}
 	} 
 }

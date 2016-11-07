@@ -24,6 +24,8 @@ public class RPGGameManager : MonoBehaviour {
 	// private variables
 	GameObject _player;
 	Vector3 _spawnLocation;
+	private bool _didDestroyEnemy1 = false;
+	private bool _didDestroyEnemy2 = false;
 
 	// set things up here
 	void Awake () {
@@ -124,7 +126,8 @@ public class RPGGameManager : MonoBehaviour {
 		EnemyRPGAI controller = enemy1.GetComponent<EnemyRPGAI> ();
 		controller.DamageEnemy (damageAmount, ignoreShield);
 		Debug.Log ("Did damage enemy");
-		if (!enemy2 && controller.currentHealth <= 0) {
+		if (!enemy2 && controller.currentHealth <= 0 && !_didDestroyEnemy1) {
+			_didDestroyEnemy1 = true;
 			GlobalControl.Instance.UpdateEnemyStunAtIndex (GlobalControl.Instance.currentEnemyIndex);
 			Debug.Log ("Did destroy enemy");
 			playerController.canMove = false;
