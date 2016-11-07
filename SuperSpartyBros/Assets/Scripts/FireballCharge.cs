@@ -4,7 +4,8 @@ using System.Collections;
 public class FireballCharge : MonoBehaviour {
 	public float chargeTime = 4.0f;
 	public float scaleFactor = 2.0f;
-	public GameObject fireBall;
+	public GameObject fireBallPrefab;
+	public Transform parentTransform;
 	private float _currentChargeTime = 0.0f;
 	private bool _shouldCreateFireball = false;
 
@@ -23,7 +24,10 @@ public class FireballCharge : MonoBehaviour {
 			if (_currentChargeTime < 0) {
 				_shouldCreateFireball = true;
 
-				Instantiate (fireBall, gameObject.transform.position, Quaternion.identity);
+				GameObject fb = (GameObject)Instantiate (fireBallPrefab, gameObject.transform.position, Quaternion.identity);
+			//	fb.transform.parent = parentTransform;
+				fb.transform.localPosition = gameObject.transform.localPosition;
+
 				Invoke ("DestroySelf", 0.1f);
 			}
 		}

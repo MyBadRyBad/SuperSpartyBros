@@ -149,8 +149,12 @@ public class PlayerControllerRPG : MonoBehaviour {
 
 		_animator.Play ("SpartyMagic", 0, 0);
 		_currentFireball = (GameObject)Instantiate (fireballPrefab, magicSpawnLocation.position, Quaternion.identity);
+		_currentFireball.transform.parent = gameObject.transform;
+		_currentFireball.transform.localPosition = magicSpawnLocation.localPosition;
 
 		FireballCharge fireballCharge = _currentFireball.GetComponent<FireballCharge> ();
+		fireballCharge.parentTransform = gameObject.transform;
+
 		if (fireballCharge) {
 			Invoke ("EndMagic", fireballCharge.chargeTime);
 		} else {
