@@ -8,6 +8,8 @@ public class RPGGameManager : MonoBehaviour {
 	// static reference to game manager so can be called from other scripts directly (not just through gameobject component)
 	public static RPGGameManager gm_rpg;
 
+	public string gameOverScene;
+
 	// UI elements to control
 	public GameObject UIGamePaused;
 	public Image attackCooldown;
@@ -15,6 +17,7 @@ public class RPGGameManager : MonoBehaviour {
 	public Image magicCooldown;
 	public Image chargeCooldown;
 
+	public PlayerControllerRPG playerController;
 	public GameObject enemy1;
 	public GameObject enemy2;
 
@@ -107,22 +110,42 @@ public class RPGGameManager : MonoBehaviour {
 
 	// damage
 	public void DamagePlayer(float damageAmount, bool ignoreShield) {
-		PlayerControllerRPG controller = _player.GetComponent<PlayerControllerRPG> ();
-		controller.DamagePlayer (damageAmount, ignoreShield);
+	//	PlayerControllerRPG controller = _player.GetComponent<PlayerControllerRPG> ();
+		playerController.DamagePlayer (damageAmount, ignoreShield);
+
+		if (playerController.currentHealth <= 0) {
+			playerController.canMove = false;
+			playerController._didTriggerDeath = true;
+			StartCoroutine (LoadGameOver ());
+		}
 	}
 
 	public void DamageEnemy1(float damageAmount, bool ignoreShield) {
 		EnemyRPGAI controller = enemy1.GetComponent<EnemyRPGAI> ();
 		controller.DamageEnemy (damageAmount, ignoreShield);
-
+		Debug.Log ("Did damage enemy");
 		if (!enemy2 && controller.currentHealth <= 0) {
 			GlobalControl.Instance.UpdateEnemyStunAtIndex (GlobalControl.Instance.currentEnemyIndex);
-			SceneManager.LoadScene (GlobalControl.Instance.mainLevel);
+			Debug.Log ("Did destroy enemy");
+			playerController.canMove = false;
+			playerController._didTriggerVictory = true;
+
+			StartCoroutine (LoadLevel ());
 		}
 	}
 
 	public void DamageEnemy2(float damageAmount, bool ignoreShield) {
 		EnemyRPGAI controller = enemy2.GetComponent<EnemyRPGAI> ();
 		controller.DamageEnemy (damageAmount, ignoreShield);
+	}
+
+	IEnumerator LoadLevel() {
+		yield return new WaitForSeconds (3.0f);
+		SceneManager.LoadScene (GlobalControl.Instance.mainLevel);
+	}
+
+	IEnumerator LoadGameOver() {
+		yield return new WaitForSeconds (3.0f);
+		SceneManager.LoadScene ("GameLose");
 	}
 }

@@ -8,7 +8,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 	// store references to components on the gameObject
 	Transform _transform;
 	Rigidbody2D _rigidbody;
-	Animator _animator;
+	public Animator _animator;
 	AudioSource _audio;
 
 	public ParticleSystem dashParticleSystem;
@@ -19,11 +19,14 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public Transform attackStopLocation;
 
 	// player health
-	private float _currentHealth = 500.0f;
+	public float currentHealth = 500.0f;
 	public TextMesh healthTextMesh;
 
 	// player Damage
 	public float attackDamage = 10.0f;
+
+	//[HideInInspector]
+	public bool canMove = true;
 
 	// fire ball
 	public GameObject fireballPrefab;
@@ -64,6 +67,10 @@ public class PlayerControllerRPG : MonoBehaviour {
 	[HideInInspector]
 	public bool isUsingCharge = false;
 
+	// TODO: fix animator - currently using workaround public variables to trigger animation
+	public bool _didTriggerVictory = false;
+	public bool _didTriggerDeath = false;
+
 	// Use this for initialization
 	void Awake () {
 		// get a reference to the components we are going to be changing and store a reference for efficiency purposes
@@ -84,8 +91,9 @@ public class PlayerControllerRPG : MonoBehaviour {
 			_audio = gameObject.AddComponent<AudioSource>();
 		}
 			
-		_currentHealth = GlobalControl.Instance.playerData.playerHP;
-		healthTextMesh.text = _currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
+		canMove = true;
+		currentHealth = GlobalControl.Instance.playerData.playerHP;
+		healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
 		// disable particles for now
 	/*	EnableDashParticleSystem(false);
 		EnableMagicParticleSystem (false);
@@ -95,7 +103,16 @@ public class PlayerControllerRPG : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		ExecutePlayerControls ();
+		if (canMove) {
+			ExecutePlayerControls ();
+		} else if (_didTriggerVictory) {
+			_didTriggerVictory = false;
+			_animator.Play ("SpartyBattleVictory", 0, 0);
+		} else if (_didTriggerDeath) {
+			_didTriggerDeath = false;
+			_animator.Play ("SpartyBattleDeath", 0, 0);
+		}
+
 	}
 		
 	void ExecutePlayerControls() {
@@ -139,11 +156,14 @@ public class PlayerControllerRPG : MonoBehaviour {
 		_attackTimer = Time.time + attackCooldown;
 		_animator.Play ("SpartyAttack", 0, 0);
 		EnableDashParticleSystem (false);
-		Invoke ("EndAttack", 1.0f);
+
+		StartCoroutine (EndAttack ());
 
 	}
 
-	public void EndAttack() {
+	IEnumerator EndAttack() {
+		yield return new WaitForSeconds (1.0f);
+
 		if (RPGGameManager.gm_rpg.enemy1) {
 			RPGGameManager.gm_rpg.DamageEnemy1 (attackDamage, false);
 		} else if (RPGGameManager.gm_rpg.enemy2) {
@@ -153,7 +173,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 		gameObject.transform.position = playerSpawnLocation.transform.position;
 		_animator.Play ("SpartyBattleIdle", 0, 0);
 	}
-
+		
 	// magic actions
 	void ExecuteMagic() {
 		Debug.Log ("Do Magic");
@@ -178,7 +198,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 
 		EnableMagicParticleSystem (true);
 	}
-
+		
 	public void EndMagic() {
 		_animator.Play ("SpartyBattleIdle", 0, 0);
 		isUsingMagic = false;
@@ -212,10 +232,14 @@ public class PlayerControllerRPG : MonoBehaviour {
 		isUsingShield = true;
 
 		_animator.Play ("SpartyDefend", 0, 0);
+
+		StartCoroutine (EndShield ());
 		Invoke ("EndShield", 1.0f);
 	}
 
-	void EndShield() {
+	IEnumerator EndShield() {
+		yield return new WaitForSeconds (1.0f);
+
 		isUsingShield = false;
 		_animator.Play ("SpartyBattleIdle", 0, 0);
 	}
@@ -223,13 +247,13 @@ public class PlayerControllerRPG : MonoBehaviour {
 	// damage player
 	public void DamagePlayer(float damageAmount, bool ignoreShield) {
 		if (!isUsingShield || ignoreShield) {
-			_currentHealth -= damageAmount;
+			currentHealth -= damageAmount;
 			GlobalControl.Instance.playerData.playerHP -= damageAmount;
-			healthTextMesh.text = _currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
+			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
 		}
 
 	}
-
+		
 	// particle systems
 	public void EnableMagicParticleSystem(bool play) {
 		if (magicParticleSystem) {

@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour {
 			RefreshWithGlobalControls ();
 		}
 
-		PlayerHPText.text = "HP: " + GlobalControl.Instance.playerData.playerHP + "/ " + GlobalControl.Instance.playerData.playerMAXHP;
+		PlayerHPText.text = "HP: " + GlobalControl.Instance.playerData.playerHP + " / " + GlobalControl.Instance.playerData.playerMAXHP;
 
 	}
 
@@ -182,7 +182,9 @@ public class GameManager : MonoBehaviour {
 			// save the current player prefs before going to GameOver
 			PlayerPrefManager.SavePlayerState(score,highscore,lives);
 
+
 			// load the gameOver screen
+			GlobalControl.Instance.ResetGlobalControl();
 			SceneManager.LoadScene(levelAfterGameOver);
 		} else { // tell the player to respawn
 			_player.GetComponent<CharacterController2D>().Respawn(_spawnLocation);

@@ -30,4 +30,12 @@ public class GlobalControl : MonoBehaviour {
 		EnemyData enemyData = Instance.enemyData [index];
 		enemyData.isStunned = true;
 	}
+
+	public void ResetGlobalControl() {
+		mainLevel = "";
+		playerData = null;
+		enemyData = null;
+		platformsData = null;
+		coinData = null;
+	}
 }

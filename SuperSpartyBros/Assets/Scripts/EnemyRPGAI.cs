@@ -81,6 +81,13 @@ public class EnemyRPGAI : MonoBehaviour {
 		if (!_isDefending || ignoreShield) {
 			currentHealth -= damageAmount;
 			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString("f0");
+
+			if (currentHealth <= 0) {
+				currentHealth = 0.0f;
+				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString("f0");
+
+				_animator.Play ("EnemyStunned", 0, 0);
+			}
 		}
 
 	}
