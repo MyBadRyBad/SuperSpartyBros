@@ -11,17 +11,24 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public Animator _animator;
 	AudioSource _audio;
 
+	public AudioSource magicChargeAudioSource;
+	public AudioClip slashSFX;
+	public AudioClip blockSFX;
+	public AudioClip hitSFX;
+
 	public ParticleSystem dashParticleSystem;
 	public ParticleSystem dodgeParticleSystem;
 	public ParticleSystem magicParticleSystem;
 	public Transform playerSpawnLocation;
 	public Transform magicSpawnLocation;
 	public Transform attackStopLocation;
+	public Transform battleIndicatorLocation;
 
 	// player health
 	public float currentHealth = 500.0f;
 	private float _defaultMaxHealth = 100.0f;
 	public TextMesh healthTextMesh;
+	public GameObject battleTextIndicatorPrefab;
 
 	// player Damage
 	public float attackDamage = 10.0f;
@@ -132,6 +139,9 @@ public class PlayerControllerRPG : MonoBehaviour {
 			} else if (vx == -1) {
 				ExecuteCharge ();
 			} else {
+				if (magicChargeAudioSource.isPlaying && !isUsingMagic) {
+					magicChargeAudioSource.Stop ();
+				}
 				EnableMagicParticleSystem (false);
 			}
 			if (vy == -1 && _shieldTimer <= Time.time) {
@@ -162,6 +172,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 		_attackTimer = Time.time + attackCooldown;
 		_animator.Play ("SpartyAttack", 0, 0);
 		EnableDashParticleSystem (false);
+		_audio.PlayOneShot (slashSFX);
 
 		StartCoroutine (EndAttack ());
 
@@ -183,6 +194,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 	// magic actions
 	void ExecuteMagic() {
 		Debug.Log ("Do Magic");
+		magicChargeAudioSource.Play ();
 
 	//	_magicTimer = Time.time + magicCooldown;
 		magicCharge = 0.0f;
@@ -208,11 +220,18 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public void EndMagic() {
 		_animator.Play ("SpartyBattleIdle", 0, 0);
 		isUsingMagic = false;
+
+		magicChargeAudioSource.Stop ();
+
 		EnableMagicParticleSystem (false);
 	}
 
 	// charge actions
 	public void ExecuteCharge() {
+		if (!magicChargeAudioSource.isPlaying) {
+			magicChargeAudioSource.Play ();
+		}
+
 		magicCharge += magicChargeRate * Time.deltaTime;
 		EnableMagicParticleSystem(true);
 	}
@@ -254,12 +273,42 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public void DamagePlayer(float damageAmount, bool ignoreShield) {
 		if (!isUsingShield || ignoreShield) {
 			currentHealth -= damageAmount;
+
+			// show battleindicator
+			if (battleTextIndicatorPrefab) {
+				Vector3 position = new Vector3 (transform.position.x, transform.position.y + 1.0f, transform.position.z);
+				GameObject obj = (GameObject)Instantiate (battleTextIndicatorPrefab, position, Quaternion.identity);
+				obj.transform.parent = gameObject.transform;
+				obj.transform.localPosition = battleIndicatorLocation.localPosition;
+				BattleTextIndicator battleText = obj.GetComponent<BattleTextIndicator> ();
+				battleText.textColor = new Color (1.0f, 0.385f, 0.385f, 1.0f);
+				battleText.text = "-" + damageAmount.ToString ("f0");
+			}
+
+			// update health text mesh
 			if (GlobalControl.Instance != null && GlobalControl.Instance.playerData != null) {
 				GlobalControl.Instance.playerData.playerHP -= damageAmount;
 				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
 			} else {
 				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + _defaultMaxHealth.ToString ("f0");
 			}
+				
+			_audio.PlayOneShot (hitSFX);
+
+
+		} else { // did Block
+			// show battleindicator
+			if (battleTextIndicatorPrefab) {
+				Vector3 position = new Vector3 (transform.position.x, transform.position.y + 1.0f, transform.position.z);
+				GameObject obj = (GameObject)Instantiate (battleTextIndicatorPrefab, position, Quaternion.identity);
+				obj.transform.parent = gameObject.transform;
+				obj.transform.localPosition = battleIndicatorLocation.localPosition;
+				BattleTextIndicator battleText = obj.GetComponent<BattleTextIndicator> ();
+				battleText.textColor = new Color (0.65f, 0.65f, 0.65f, 1.0f);
+				battleText.text = "Blocked";
+			}
+
+			_audio.PlayOneShot (blockSFX);
 		}
 
 	}

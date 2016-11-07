@@ -4,6 +4,7 @@ using System.Collections;
 public class FireballShoot : MonoBehaviour {
 	public float speed = 10.0f;
 	private Rigidbody2D _rb;
+	public bool didCollide = false;
 
 	// Use this for initialization
 	void Start () {
@@ -17,7 +18,10 @@ public class FireballShoot : MonoBehaviour {
 
 	void OnTriggerEnter2D(Collider2D collider) {
 		if (collider.gameObject.tag == "Enemy") {
-			RPGGameManager.gm_rpg.DamageEnemy1 (40.0f, true);
+			if (!didCollide) {
+				didCollide = true;
+				RPGGameManager.gm_rpg.DamageEnemy1 (40.0f, true);
+			}
 		}
 	}
 }

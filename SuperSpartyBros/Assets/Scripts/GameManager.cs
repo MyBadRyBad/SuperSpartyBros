@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour {
 		Debug.Log ("Did Start");
 
 		Debug.Log ("currentLevel: " + GlobalControl.Instance.mainLevel);
-		if (!GlobalControl.Instance.mainLevel.Equals (currentLevel)) {
+		if (!GlobalControl.Instance.mainLevel.Equals (currentLevel) || GlobalControl.Instance.playerData == null) {
 			SetupGlobalControls ();				
 		} else {
 			RefreshWithGlobalControls ();

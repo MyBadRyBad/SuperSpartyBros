@@ -21,6 +21,11 @@ public class RPGGameManager : MonoBehaviour {
 	public GameObject enemy1;
 	public GameObject enemy2;
 
+	public GameObject playerSlash;
+	public GameObject enemy1Slash;
+	private Animator _playerSlashAnimator;
+	private Animator _enemy1SlashAnimator;
+
 	// private variables
 	GameObject _player;
 	Vector3 _spawnLocation;
@@ -60,6 +65,14 @@ public class RPGGameManager : MonoBehaviour {
 
 		if (_player==null)
 			Debug.LogError("Player not found in Game Manager");
+
+		if (playerSlash) {
+			_playerSlashAnimator = playerSlash.GetComponent<Animator> ();
+		}
+
+		if (enemy1Slash) {
+			_enemy1SlashAnimator = enemy1Slash.GetComponent<Animator> ();
+		}
 
 		// get initial _spawnLocation based on initial position of player
 		_spawnLocation = _player.transform.position;
@@ -115,6 +128,10 @@ public class RPGGameManager : MonoBehaviour {
 	//	PlayerControllerRPG controller = _player.GetComponent<PlayerControllerRPG> ();
 		playerController.DamagePlayer (damageAmount, ignoreShield);
 
+		if (_playerSlashAnimator) {
+			_playerSlashAnimator.Play ("LeftSlash", 0, 0);
+		}
+
 		if (playerController.currentHealth <= 0) {
 			playerController.canMove = false;
 			playerController._didTriggerDeath = true;
@@ -125,7 +142,12 @@ public class RPGGameManager : MonoBehaviour {
 	public void DamageEnemy1(float damageAmount, bool ignoreShield) {
 		EnemyRPGAI controller = enemy1.GetComponent<EnemyRPGAI> ();
 		controller.DamageEnemy (damageAmount, ignoreShield);
-		Debug.Log ("Did damage enemy");
+
+		if (_enemy1SlashAnimator) {
+			_enemy1SlashAnimator.Play ("RightSlash", 0, 0);
+		}
+
+
 		if (!enemy2 && controller.currentHealth <= 0 && !_didDestroyEnemy1) {
 			_didDestroyEnemy1 = true;
 			GlobalControl.Instance.UpdateEnemyStunAtIndex (GlobalControl.Instance.currentEnemyIndex);

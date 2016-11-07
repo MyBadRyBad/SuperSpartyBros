@@ -3,6 +3,11 @@ using System.Collections;
 
 public class EnemyRPGAI : MonoBehaviour {
 
+	AudioSource _audio;
+	public AudioClip slashSFX;
+	public AudioClip blockSFX;
+	public AudioClip hitSFX;
+
 	public float attackDamage = 5.0f;
 
 	public float attackDelayMin = 5.0f;
@@ -18,8 +23,18 @@ public class EnemyRPGAI : MonoBehaviour {
 	public float maxHealth = 20.0f;
 	public float currentHealth = 20.0f;
 	public TextMesh healthTextMesh;
+	public GameObject battleTextIndicatorPrefab;
 
 	private Animator _animator;
+
+	void Awake() {
+		_audio = GetComponent<AudioSource> ();
+		if (_audio==null) { // if AudioSource is missing
+			Debug.LogWarning("AudioSource component missing from this gameobject. Adding one.");
+			// let's just add the AudioSource component dynamically
+			_audio = gameObject.AddComponent<AudioSource>();
+		}
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -49,7 +64,7 @@ public class EnemyRPGAI : MonoBehaviour {
 	void Attack() {
 		_attackTimer = Time.time + Random.Range (attackDelayMin, attackDelayMax);
 		_animator.Play ("EnemyAttack", 0, 0);
-
+		_audio.PlayOneShot (slashSFX);
 		_isAttacking = true;
 		Invoke ("EndAttack", 1.0f);
 	}
@@ -80,14 +95,35 @@ public class EnemyRPGAI : MonoBehaviour {
 	public void DamageEnemy(float damageAmount, bool ignoreShield) {
 		if (!_isDefending || ignoreShield) {
 			currentHealth -= damageAmount;
-			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString("f0");
+
+			// show battleindicator
+			if (battleTextIndicatorPrefab) {
+				Vector3 position = new Vector3 (transform.position.x, transform.position.y + 1.0f, transform.position.z);
+				GameObject obj = (GameObject)Instantiate (battleTextIndicatorPrefab, position, Quaternion.identity);
+				BattleTextIndicator battleText = obj.GetComponent<BattleTextIndicator> ();
+				battleText.textColor = new Color (1.0f, 0.385f, 0.385f, 1.0f);
+				battleText.text = "-" + damageAmount.ToString ("f0");
+			}
+
+			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString ("f0");
 
 			if (currentHealth <= 0) {
 				currentHealth = 0.0f;
-				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString("f0");
+				healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString ("f0");
 
 				_animator.Play ("EnemyStunned", 0, 0);
 			}
+
+			_audio.PlayOneShot (hitSFX);
+
+		} else {
+			Vector3 position = new Vector3 (transform.position.x, transform.position.y + 1.0f, transform.position.z);
+			GameObject obj = (GameObject)Instantiate (battleTextIndicatorPrefab, position, Quaternion.identity);
+			BattleTextIndicator battleText = obj.GetComponent<BattleTextIndicator> ();
+			battleText.textColor = new Color (0.65f, 0.65f, 0.65f, 1.0f);
+			battleText.text = "Blocked";
+
+			_audio.PlayOneShot (blockSFX);
 		}
 
 	}
