@@ -9,22 +9,32 @@ public class GameManager : MonoBehaviour {
 	public static GameManager gm;
 
 	// levels to move to on victory and lose
+	public string currentLevel;
 	public string levelAfterVictory;
 	public string levelAfterGameOver;
+
+	public string levelBattle;
 
 	// game performance
 	public int score = 0;
 	public int highscore = 0;
 	public int startLives = 3;
 	public int lives = 3;
-	public int HealthPoints = 100;
+	public float playerHP = 100.0f;
+	public float playerMAXHP = 100.0f;
 
 	// UI elements to control
 	public Text UIScore;
 	public Text UIHighScore;
 	public Text UILevel;
+	public Text PlayerHPText;
 	public GameObject[] UIExtraLives;
 	public GameObject UIGamePaused;
+
+	// reference
+	public GameObject[] enemies;
+	public GameObject[] platforms;
+	public GameObject[] coins;
 
 	// private variables
 	GameObject _player;
@@ -38,6 +48,22 @@ public class GameManager : MonoBehaviour {
 
 		// setup all the variables, the UI, and provide errors if things not setup properly.
 		setupDefaults();
+
+		Debug.Log ("did awake");
+	}
+
+	void Start() {
+		Debug.Log ("Did Start");
+
+		Debug.Log ("currentLevel: " + GlobalControl.Instance.mainLevel);
+		if (!GlobalControl.Instance.mainLevel.Equals (currentLevel)) {
+			SetupGlobalControls ();				
+		} else {
+			RefreshWithGlobalControls ();
+		}
+
+		PlayerHPText.text = "HP: " + GlobalControl.Instance.playerData.playerHP + "/ " + GlobalControl.Instance.playerData.playerMAXHP;
+
 	}
 
 	// game loop
@@ -176,5 +202,175 @@ public class GameManager : MonoBehaviour {
 	IEnumerator LoadNextLevel() {
 		yield return new WaitForSeconds(3.5f);
 		SceneManager.LoadScene(levelAfterVictory);
+	}
+
+	public void LoadBattle() {
+		SceneManager.LoadScene (levelBattle);
+	}
+		
+	void RefreshWithGlobalControls() {
+		_player.transform.position = GlobalControl.Instance.playerData.currentPlayerPosition;
+
+		for (int index = 0; index < GlobalControl.Instance.enemyData.Length; index++) {
+			EnemyData enemyData = GlobalControl.Instance.enemyData [index];
+			GameObject enemy = enemies [index];
+			Enemy enemyBehavior = enemy.GetComponent<Enemy> ();
+
+			// is a moving Enemy
+			if (!enemyBehavior) {
+				Transform childEnemy = enemy.transform.GetChild (0);
+				enemyBehavior = childEnemy.gameObject.GetComponent<Enemy> ();
+				childEnemy.position = enemyData.childPosition;
+				enemy.transform.position = enemyData.currentPosition;
+
+			} else {
+				enemy.transform.position = enemyData.currentPosition;
+			}
+				
+			if (enemyData.isStunned) {
+				enemyBehavior.Stunned ();
+			}
+
+		/*	if (enemyData.movingPlatformIndex >= 0) {
+				SetObjectToChildOfPlatform (enemy, platforms [enemyData.movingPlatformIndex]);
+			} */
+				
+		}
+
+		for (int index = 0; index < GlobalControl.Instance.coinData.Length; index++) {
+			CoinData coinData = GlobalControl.Instance.coinData [index];
+			GameObject coin = coins [index];
+			coin.SetActive (coinData.doesExist);
+		}
+
+		for (int index = 0; index < GlobalControl.Instance.platformsData.Length; index++) {
+			MovingPlatformData platformData = GlobalControl.Instance.platformsData [index];
+			GameObject platform = platforms [index];
+			platform.transform.position = platformData.currentPosition;
+	
+		}
+	}
+
+	public void UpdateGlobalControls() {
+		GlobalControl.Instance.playerData.movingPlatformIndex = IndexOfMovingPlatform (_player);
+		GlobalControl.Instance.playerData.currentPlayerPosition = _player.transform.position;
+
+		for (int index = 0; index < enemies.Length; index++) {
+			EnemyData enemyData = GlobalControl.Instance.enemyData [index];
+			GameObject enemy = enemies [index];
+			Enemy enemyBehavior = enemy.GetComponent<Enemy> ();
+
+			// is a moving Enemy
+			if (!enemyBehavior) {
+				Transform childEnemy = enemy.transform.GetChild (0);
+				enemyBehavior = childEnemy.gameObject.GetComponent<Enemy> ();
+
+				enemyData.isStunned = enemyBehavior.isStunned;
+				enemyData.childPosition = childEnemy.position;
+				enemyData.currentPosition = enemy.transform.position;
+				enemyData.isMovingEnemy = true;
+			} else {
+				enemyData.isStunned = enemyBehavior.isStunned;
+				enemyData.currentPosition = enemy.transform.position;
+				enemyData.isMovingEnemy = false;
+			}
+		}
+			
+	/*	for (int index = 0; index < coins.Length; index++) {
+			CoinData coinData = GlobalControl.Instance.coinData [index];
+			GameObject coin = coins [index];
+			coin.SetActive (coinData.doesExist);
+		} */
+			
+		for (int index = 0; index < platforms.Length; index++) {
+			GameObject platform = platforms [index];
+			MovingPlatformData platformData = GlobalControl.Instance.platformsData [index];
+			platformData.currentPosition = platform.transform.position;
+
+			PlatformMover platformMover = platform.GetComponent<PlatformMover> ();
+			platformMover.myWaypointIndex = platformData.waypointIndex;
+		}
+	}
+
+	public void UpdateGlobalControlsEnemyIndex(GameObject enemy) {	
+
+		for (int index = 0; index < enemies.Length; index++) {
+			GameObject storedObject = enemies [index];
+			GameObject currentObject; 
+			if (enemy.transform.parent == null) {
+				currentObject = enemy;
+			} else {
+				currentObject = enemy.transform.parent.gameObject;
+			}
+
+			if (storedObject.Equals (currentObject)) {
+				GlobalControl.Instance.currentEnemyIndex = index;
+
+				Debug.Log ("enemyIndex: " + index);
+			}
+		}
+	}
+
+	void SetupGlobalControls() {
+		GlobalControl.Instance.mainLevel = currentLevel;
+
+		GlobalControl.Instance.playerData = new PlayerData();
+		GlobalControl.Instance.enemyData = new EnemyData[enemies.Length];
+		GlobalControl.Instance.coinData = new CoinData[coins.Length];
+		GlobalControl.Instance.platformsData = new MovingPlatformData[platforms.Length];
+
+		GlobalControl.Instance.playerData.playerHP = playerHP;
+		GlobalControl.Instance.playerData.playerMAXHP = playerMAXHP;
+		GlobalControl.Instance.playerData.movingPlatformIndex = IndexOfMovingPlatform (_player);
+
+		for (int index = 0; index < enemies.Length; index++) {
+			GameObject enemy = enemies [index];
+			EnemyData enemyData = new EnemyData ();
+			enemyData.currentPosition = enemy.transform.position;
+			enemyData.isStunned = false;
+
+			GlobalControl.Instance.enemyData [index] = enemyData;
+		}
+
+		for (int index = 0; index < coins.Length; index++) {
+			CoinData coinData = new CoinData ();
+			coinData.doesExist = true;
+
+			GlobalControl.Instance.coinData [index] = coinData;
+		}
+
+		for (int index = 0; index < platforms.Length; index++) {
+			GameObject platform = platforms [index];
+			MovingPlatformData platformData = new MovingPlatformData ();
+			platformData.currentPosition = platform.transform.position;
+
+			GlobalControl.Instance.platformsData [index] = platformData;
+		}
+	}
+
+	public int IndexOfMovingPlatform(GameObject obj) {
+		if (obj.transform.parent && 
+			obj.transform.parent.parent && 
+			obj.transform.parent.parent.gameObject.GetComponent<PlatformMover>()) {
+			for (int index = 0; index < platforms.Length; index++) {
+				if (obj.transform.parent.parent.gameObject == platforms [index]) {
+					Debug.Log ("Found Platform");
+					return index;
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	public bool SetObjectToChildOfPlatform(GameObject obj, GameObject movingPlatform) {
+		Transform childPlatform = movingPlatform.transform.GetChild (0);
+
+		if (childPlatform) {
+			obj.transform.parent = childPlatform;
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

@@ -15,7 +15,8 @@ public class EnemyRPGAI : MonoBehaviour {
 	private float _defendTimer = 0.0f;
 	private bool _isDefending = false;
 
-	private float _currentHealth = 500.0f;
+	public float maxHealth = 20.0f;
+	public float currentHealth = 20.0f;
 	public TextMesh healthTextMesh;
 
 	private Animator _animator;
@@ -29,11 +30,14 @@ public class EnemyRPGAI : MonoBehaviour {
 
 		_attackTimer = Time.time + Random.Range (attackDelayMin, attackDelayMax);
 		_defendTimer = Time.time + Random.Range (defendDelayMin, defendDelayMax);
+
+		currentHealth = maxHealth;
+		healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString("f0");
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (!_isAttacking && !_isDefending) {
+		if (!_isAttacking && !_isDefending && currentHealth > 0) {
 			if (_attackTimer <= Time.time) {
 				Attack ();
 			} else if (_defendTimer <= Time.time) {
@@ -75,8 +79,8 @@ public class EnemyRPGAI : MonoBehaviour {
 	// damage Enemy
 	public void DamageEnemy(float damageAmount, bool ignoreShield) {
 		if (!_isDefending || ignoreShield) {
-			_currentHealth -= damageAmount;
-			healthTextMesh.text = _currentHealth.ToString ("f0") + " / 500";
+			currentHealth -= damageAmount;
+			healthTextMesh.text = currentHealth.ToString ("f0") + " / " + maxHealth.ToString("f0");
 		}
 
 	}

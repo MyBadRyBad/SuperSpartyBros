@@ -8,7 +8,6 @@ public class CharacterController2D : MonoBehaviour {
 	// player controls
 	[Range(0.0f, 10.0f)] // create a slider in the editor and set limits on moveSpeed
 	public float moveSpeed = 3f;
-	public bool isBattleMode = false;
 	public float jumpForce = 600f;
 
 	// player health
@@ -98,26 +97,24 @@ public class CharacterController2D : MonoBehaviour {
 	// this code will flip the player even if the animator is controlling scale
 	void LateUpdate()
 	{
-		if (!isBattleMode) {
-			// get the current scale
-			Vector3 localScale = _transform.localScale;
+		// get the current scale
+		Vector3 localScale = _transform.localScale;
 
-			if (_vx > 0) // moving right so face right
-			{
-				_facingRight = true;
-			} else if (_vx < 0) { // moving left so face left
-				_facingRight = false;
-			}
-
-			// check to see if scale x is right for the player
-			// if not, multiple by -1 which is an easy way to flip a sprite
-			if (((_facingRight) && (localScale.x<0)) || ((!_facingRight) && (localScale.x>0))) {
-				localScale.x *= -1;
-			}
-
-			// update the scale
-			_transform.localScale = localScale;
+		if (_vx > 0) // moving right so face right
+		{
+			_facingRight = true;
+		} else if (_vx < 0) { // moving left so face left
+			_facingRight = false;
 		}
+
+		// check to see if scale x is right for the player
+		// if not, multiple by -1 which is an easy way to flip a sprite
+		if (((_facingRight) && (localScale.x<0)) || ((!_facingRight) && (localScale.x>0))) {
+			localScale.x *= -1;
+		}
+
+		// update the scale
+		_transform.localScale = localScale;
 	}
 
 	void ExecuteMovementControls() {
@@ -177,25 +174,6 @@ public class CharacterController2D : MonoBehaviour {
 		Physics2D.IgnoreLayerCollision(_playerLayer, _platformLayer, (_vy > 0.0f)); 
 	} 
 
-	void ExecuteCombatControls() {
-		_vx = CrossPlatformInputManager.GetAxis ("Horizontal");
-		_vy = CrossPlatformInputManager.GetAxis ("Vertical");
-
-
-		if (_vx == 1) {
-			DoAttack ();
-		} else if (_vx == -1) {
-			DoDodge ();
-		}
-
-		if (_vy == -1) {
-			DoShield ();
-		} else if (_vy == 1) {
-			DoMagic ();
-		}
-
-	}
-
 	// if the player collides with a MovingPlatform, then make it a child of that platform
 	// so it will go for a ride on the MovingPlatform
 	void OnCollisionEnter2D(Collision2D other)
@@ -213,22 +191,6 @@ public class CharacterController2D : MonoBehaviour {
 		{
 			this.transform.parent = null;
 		}
-	}
-
-	void DoAttack() {
-		Debug.Log ("Do Attack");
-	}
-
-	void DoDodge() {
-		Debug.Log ("Do Dodge");
-	}
-
-	void DoShield() {
-		Debug.Log ("Do Shield");
-	}
-
-	void DoMagic() {
-		Debug.Log ("Do Magic");
 	}
 
 	// make the player jump

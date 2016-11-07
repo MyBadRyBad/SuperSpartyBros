@@ -45,7 +45,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 
 	// shield magic cooldowns
 	public float magicCooldown = 5.0f;
-	private float _magicTimer = 0.0f;
+//	private float _magicTimer = 0.0f;
 
 	[HideInInspector]
 	public bool isUsingMagic = false;
@@ -56,7 +56,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 
 	// shield dodge cooldowns
 	public float dodgeCooldown = 1.0f;
-	private float _dodgeTimer = 0.0f;
+//	private float _dodgeTimer = 0.0f;
 
 	[HideInInspector]
 	public bool isUsingDodge = false;
@@ -84,6 +84,8 @@ public class PlayerControllerRPG : MonoBehaviour {
 			_audio = gameObject.AddComponent<AudioSource>();
 		}
 			
+		_currentHealth = GlobalControl.Instance.playerData.playerHP;
+		healthTextMesh.text = _currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
 		// disable particles for now
 	/*	EnableDashParticleSystem(false);
 		EnableMagicParticleSystem (false);
@@ -156,7 +158,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 	void ExecuteMagic() {
 		Debug.Log ("Do Magic");
 
-		_magicTimer = Time.time + magicCooldown;
+	//	_magicTimer = Time.time + magicCooldown;
 		magicCharge = 0.0f;
 		isUsingMagic = true;
 
@@ -193,7 +195,7 @@ public class PlayerControllerRPG : MonoBehaviour {
 	void ExecuteDodge() {
 		Debug.Log ("Do Dodge");
 		_animator.Play ("SpartyDodge", 0, 0);
-		_dodgeTimer = Time.time + dodgeCooldown;
+	//	_dodgeTimer = Time.time + dodgeCooldown;
 		isUsingDodge = true;
 	}
 
@@ -222,7 +224,8 @@ public class PlayerControllerRPG : MonoBehaviour {
 	public void DamagePlayer(float damageAmount, bool ignoreShield) {
 		if (!isUsingShield || ignoreShield) {
 			_currentHealth -= damageAmount;
-			healthTextMesh.text = _currentHealth.ToString ("f0") + " / 500";
+			GlobalControl.Instance.playerData.playerHP -= damageAmount;
+			healthTextMesh.text = _currentHealth.ToString ("f0") + " / " + GlobalControl.Instance.playerData.playerMAXHP.ToString ("f0");
 		}
 
 	}

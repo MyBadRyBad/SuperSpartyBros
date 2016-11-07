@@ -160,7 +160,7 @@ public class Enemy : MonoBehaviour {
 	{
 		if ((collision.tag == "Player") && !isStunned)
 		{
-			CharacterController2D player = collision.gameObject.GetComponent<CharacterController2D>();
+	/*		CharacterController2D player = collision.gameObject.GetComponent<CharacterController2D>();
 			if (player.playerCanMove) {
 				// Make sure the enemy is facing the player on attack
 				Flip(collision.transform.position.x-_transform.position.x);
@@ -176,7 +176,11 @@ public class Enemy : MonoBehaviour {
 				
 				// stop to enjoy killing the player
 				_moveTime = Time.time + stunnedTime;
-			}
+			} */
+
+			GameManager.gm.UpdateGlobalControls ();
+			GameManager.gm.UpdateGlobalControlsEnemyIndex (gameObject);
+			GameManager.gm.LoadBattle ();
 		}
 	}
 	
@@ -206,7 +210,7 @@ public class Enemy : MonoBehaviour {
 	}
 	
 	// setup the enemy to be stunned
-	public void Stunned()
+/*	public void Stunned()
 	{
 		if (!isStunned) 
 		{
@@ -226,6 +230,22 @@ public class Enemy : MonoBehaviour {
 			// start coroutine to stand up eventually
 			StartCoroutine (Stand ());
 		}
+	} */
+
+	public void Stunned()
+	{
+		isStunned = true;
+
+		// provide the player with feedback that enemy is stunned
+		_animator.SetTrigger("Stunned");
+
+		// stop moving
+		_rigidbody.velocity = new Vector2(0, 0);
+
+		// switch layer to stunned layer so no collisions with the player while stunned
+		this.gameObject.layer = _stunnedLayer;
+		stunnedCheck.layer = _stunnedLayer;
+
 	}
 	
 	// coroutine to unstun the enemy and stand back up

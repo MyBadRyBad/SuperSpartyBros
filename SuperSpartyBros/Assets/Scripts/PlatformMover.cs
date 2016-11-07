@@ -16,8 +16,12 @@ public class PlatformMover : MonoBehaviour {
 	// private variables
 
 	Transform _transform;
-	int _myWaypointIndex = 0;		// used as index for My_Waypoints
+	[HideInInspector]
+	public int myWaypointIndex = 0;		// used as index for My_Waypoints
+
 	float _moveTime;
+	private float _forceStopDelay = 2.0f;
+	private float _forceStopTimer = 0.0f;
 	bool _moving = true;
 
 	// Use this for initialization
@@ -30,9 +34,13 @@ public class PlatformMover : MonoBehaviour {
 	// game loop
 	void Update () {
 		// if beyond _moveTime, then start moving
-		if (Time.time >= _moveTime) {
+		if (Time.time >= _moveTime && Time.time >= _forceStopTimer) {
 			Movement();
 		}
+	}
+
+	public void ForceStop() {
+		_forceStopTimer = Time.time + _forceStopDelay;
 	}
 
 	void Movement() {
@@ -40,18 +48,18 @@ public class PlatformMover : MonoBehaviour {
 		if ((myWaypoints.Length != 0) && (_moving)) {
 
 			// move towards waypoint
-			_transform.position = Vector3.MoveTowards(_transform.position, myWaypoints[_myWaypointIndex].transform.position, moveSpeed * Time.deltaTime);
+			_transform.position = Vector3.MoveTowards(_transform.position, myWaypoints[myWaypointIndex].transform.position, moveSpeed * Time.deltaTime);
 
 			// if the enemy is close enough to waypoint, make it's new target the next waypoint
-			if(Vector3.Distance(myWaypoints[_myWaypointIndex].transform.position, _transform.position) <= 0) {
-				_myWaypointIndex++;
+			if(Vector3.Distance(myWaypoints[myWaypointIndex].transform.position, _transform.position) <= 0) {
+				myWaypointIndex++;
 				_moveTime = Time.time + waitAtWaypointTime;
 			}
 			
 			// reset waypoint back to 0 for looping, otherwise flag not moving for not looping
-			if(_myWaypointIndex >= myWaypoints.Length) {
+			if(myWaypointIndex >= myWaypoints.Length) {
 				if (loop)
-					_myWaypointIndex = 0;
+					myWaypointIndex = 0;
 				else
 					_moving = false;
 			}

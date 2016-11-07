@@ -30,6 +30,7 @@ public class RPGGameManager : MonoBehaviour {
 
 		// setup all the variables, the UI, and provide errors if things not setup properly.
 		setupDefaults();
+	
 	}
 
 	// game loop
@@ -113,6 +114,11 @@ public class RPGGameManager : MonoBehaviour {
 	public void DamageEnemy1(float damageAmount, bool ignoreShield) {
 		EnemyRPGAI controller = enemy1.GetComponent<EnemyRPGAI> ();
 		controller.DamageEnemy (damageAmount, ignoreShield);
+
+		if (!enemy2 && controller.currentHealth <= 0) {
+			GlobalControl.Instance.UpdateEnemyStunAtIndex (GlobalControl.Instance.currentEnemyIndex);
+			SceneManager.LoadScene (GlobalControl.Instance.mainLevel);
+		}
 	}
 
 	public void DamageEnemy2(float damageAmount, bool ignoreShield) {
