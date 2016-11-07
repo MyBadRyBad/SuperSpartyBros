@@ -278,11 +278,11 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 
-		/*	for (int index = 0; index < coins.Length; index++) {
+		for (int index = 0; index < coins.Length; index++) {
 			CoinData coinData = GlobalControl.Instance.coinData [index];
 			GameObject coin = coins [index];
-			coin.SetActive (coinData.doesExist);
-		} */
+			coinData.doesExist = coin.activeSelf;
+		} 
 
 		for (int index = 0; index < platforms.Length; index++) {
 			GameObject platform = platforms [index];

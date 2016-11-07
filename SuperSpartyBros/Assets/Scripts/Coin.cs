@@ -16,6 +16,8 @@ public class Coin : MonoBehaviour {
 			// mark as taken so doesn't get taken multiple times
 			taken=true;
 
+		//	GameManager.gm.
+
 			// if explosion prefab is provide, then instantiate it
 			if (explosion)
 			{
@@ -26,7 +28,9 @@ public class Coin : MonoBehaviour {
 			other.gameObject.GetComponent<CharacterController2D>().CollectCoin(coinValue);
 
 			// destroy the coin
-			DestroyObject(this.gameObject);
+			//DestroyObject(this.gameObject);
+
+			this.gameObject.SetActive (false);
 		}
 	}
 
