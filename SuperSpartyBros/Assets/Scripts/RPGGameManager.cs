@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.UI; // include UI namespace so can reference UI elements
 using UnityEngine.SceneManagement; // include so we can load new scenes
+using UnityStandardAssets.CrossPlatformInput;
 
 public class RPGGameManager : MonoBehaviour {
 
@@ -16,6 +17,11 @@ public class RPGGameManager : MonoBehaviour {
 	public Image defendCooldown;
 	public Image magicCooldown;
 	public Image chargeCooldown;
+
+	public Image leftArrow;
+	public Image rightArrow;
+	public Image upArrow;
+	public Image downArrow;
 
 	public PlayerControllerRPG playerController;
 	public GameObject enemy1;
@@ -32,11 +38,25 @@ public class RPGGameManager : MonoBehaviour {
 	private bool _didDestroyEnemy1 = false;
 	private bool _didDestroyEnemy2 = false;
 
+	// audio sources
+	private AudioSource _audio;
+	public AudioClip victoryClip;
+	public AudioClip defeatClip;
+
 	// set things up here
 	void Awake () {
 		// setup reference to game manager
 		if (gm_rpg == null)
 			gm_rpg = this.GetComponent<RPGGameManager>();
+
+
+		_audio = GetComponent<AudioSource> ();
+		if (_audio==null) { // if AudioSource is missing
+			Debug.LogWarning("AudioSource component missing from this gameobject. Adding one.");
+			// let's just add the AudioSource component dynamically
+			_audio = gameObject.AddComponent<AudioSource>();
+		}
+		_audio.loop = true;
 
 		// setup all the variables, the UI, and provide errors if things not setup properly.
 		setupDefaults();
@@ -55,6 +75,31 @@ public class RPGGameManager : MonoBehaviour {
 				UIGamePaused.SetActive(false); // remove the pause UI
 			}
 		}
+
+
+		float vx = CrossPlatformInputManager.GetAxis ("Horizontal");
+		float vy = CrossPlatformInputManager.GetAxis ("Vertical");
+
+		// left button 
+		if (vx <= 0) {
+			leftArrow.color = new Color (0.235f, 0.745f, 0.824f, vx * -1);
+		} 
+
+		// right button
+		if (vx >= 0) {
+			rightArrow.color = new Color (0.235f, 0.745f, 0.824f, vx);
+		}
+		 
+		// down button
+		if (vy <= 0) {
+			downArrow.color = new Color (0.235f, 0.745f, 0.824f, vy * -1);
+		}
+
+		if (vy >= 0) {
+			upArrow.color = new Color (0.235f, 0.745f, 0.824f, vy);
+		}
+
+
 	}
 
 	// setup all the variables, the UI, and provide errors if things not setup properly.
@@ -135,6 +180,11 @@ public class RPGGameManager : MonoBehaviour {
 		if (playerController.currentHealth <= 0) {
 			playerController.canMove = false;
 			playerController._didTriggerDeath = true;
+
+			_audio.loop = false;
+			_audio.Stop ();
+			_audio.PlayOneShot (defeatClip);
+
 			StartCoroutine (LoadGameOver ());
 		}
 	}
@@ -154,6 +204,10 @@ public class RPGGameManager : MonoBehaviour {
 			Debug.Log ("Did destroy enemy");
 			playerController.canMove = false;
 			playerController._didTriggerVictory = true;
+
+			_audio.loop = false;
+			_audio.Stop ();
+			_audio.PlayOneShot (victoryClip);
 
 			StartCoroutine (LoadLevel ());
 		}
